@@ -1,0 +1,55 @@
+你是一名资深前端架构师，熟悉 Mars3D、Babylon.js、Vue3、Vite 技术栈。
+
+
+项目路径：D:\codeproject\fangruan\gisproject\mars3d-vue3-vite
+
+参考结构（已实现的模块分层）：
+D:\codeproject\fangruan\yuantaishi\codeproject\haiguang\code\haiguang-admin-ui\src\views\business\screen
+
+---
+
+场景逻辑链（已部分实现）：
+1. Web端加载GIS地图（自定义图层+瓦片）
+2. 加载风场、风机GLTF模型（数百个）
+3. 加载电缆线分段数据
+4. 点击风机 → 新标签页 → Babylon.js 初始化 → 加载水下GLB模型（如：http://47.104.109.74:10555/linejson/feng/keng1.glb）
+5. Babylon.js 场景内支持方量测算：挖方量、填方量、横截面积（可扩展）
+
+---
+
+模块划分建议（按功能）：
+地图引擎（Mars3D）和 Babylon.js 必须彻底解耦，各自成模块
+- mars3dmap/：Mars3D 地图引擎相关，完全独立：地图加载、图层控制、相机交互
+- babylonjs/：Babylon.js 引擎相关，完全独立
+- business/：风机、风场、电缆线等业务模型
+- data/：数据服务、模型路径、配置
+- utils/：测量工具、GLTF加载器、Babylon.js扩展方法
+- components/：可复用组件（如测量面板、模型查看器）
+
+
+---
+
+要求：
+- 按功能模块划分目录，避免引擎耦合
+- 抽象可复用逻辑（如：模型加载器、测量工具）
+- 支持后续扩展（如：新测量类型、引擎切换）
+- 保持 Vue3 + Vite 风格，尽量用 <script setup>
+
+---
+
+任务：
+1、审查并优化项目模块结构，确保支持双3D引擎（Mars3D + Babylon.js）协同工作。
+2、并按照需求生成部分可用的功能模块。
+输出：
+请生成推荐的目录结构（含文件说明），并给出关键模块的入口文件模板（如：useBabylonMeasure.ts、GisViewer.vue、ModelLoader.ts）
+
+
+
+场景逻辑链检查（已部分实现）：
+1. Web端加载GIS地图（自定义图层+瓦片）
+2. 加载风场、风机GLTF模型（数百个）
+3. 加载电缆线分段数据
+4. 点击风机 → 弹窗或者打开新浏览器标签页加载 → Babylon.js 初始化 → 加载水下GLB模型（如：http://47.104.109.74:10555/linejson/feng/keng1.glb）
+5. Babylon.js 场景内支持方量测算：挖方量、填方量、横截面积（可扩展）
+
+另外如果后续持续增加面板的相关的控制如何扩展。目前都没有考虑。请从目前的项目的整体的架构层面再次考虑如何能够使得运行和加载，以及交互更加的顺畅。

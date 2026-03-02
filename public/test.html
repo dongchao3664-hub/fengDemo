@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Babylon.js 测量系统 - 完整版</title>
+    <style>
+        html, body { overflow: hidden; width: 100%; height: 100%; margin: 0; padding: 0; }
+        #renderCanvas { width: 100%; height: 100%; touch-action: none; outline: none; }
+        
+        #ui-panel {
+            position: absolute; top: 20px; left: 20px; width: 320px;
+            background: rgba(15, 15, 25, 0.95); color: #fff;
+            padding: 20px; border-radius: 12px; font-family: 'Segoe UI', sans-serif;
+            border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; max-height: 90vh;
+        }
+        .title { font-size: 18px; font-weight: bold; color: #ffcc00; margin-bottom: 12px; border-bottom: 1px solid #444; padding-bottom: 8px; }
+        
+        .live-status { font-size: 12px; color: #00ff00; margin-bottom: 10px; font-weight: bold; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
+        .label { color: #aaa; }
+        .value { font-weight: bold; color: #4db8ff; font-family: monospace; }
+
+        .switch-container { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .3s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .data-list { overflow-y: auto; flex-grow: 1; margin-top: 10px; border-top: 1px solid #333; padding-top: 10px; }
+        .data-card { background: rgba(255, 255, 255, 0.08); border-left: 4px solid #ffcc00;
+            padding: 12px; margin-bottom: 10px; border-radius: 4px; font-size: 12px; }
+        .card-header { font-weight: bold; color: #ffcc00; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; color: #ccc; }
+        .card-grid span b { color: #4db8ff; font-family: monospace; }
+        .hint { font-size: 11px; color: #666; margin-top: 10px; line-height: 1.4; }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <div class="title">工程三角测量系统</div>
+        
+        <div class="live-status" id="live-id">等待测量...</div>
+        <div id="info-content">
+            <div class="info-row"><span class="label">距离 (AB):</span> <span class="value" id="dist-ab">--</span></div>
+            <div class="info-row"><span class="label">高差 (BC):</span> <span class="value" id="dist-bc">--</span></div>
+            <div class="info-row"><span class="label">水平 (AC):</span> <span class="value" id="dist-ac">--</span></div>
+            <div class="info-row"><span class="label">角度 (∠A):</span> <span class="value" id="angle-a">--</span></div>
+        </div>
+
+        <div class="switch-container">
+            <span>开启测量模式</span>
+            <label class="switch">
+                <input type="checkbox" id="measure-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div id="card-container" class="data-list">
+            <div style="color:#444; text-align:center; font-size:12px;">暂无测量记录</div>
+        </div>
+
+        <div class="hint">
+            • <b>左键</b>：点A定起位，点B存结果<br>
+            • <b>右键</b>：点击测量物体进行删除
+        </div>
+    </div>
+
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+
+        class MeasurementEntity {
+            constructor(id, pA, pB, scene, gui) {
+                this.id = id;
+                this.scene = scene;
+                this.gui = gui;
+                this.pA = pA.clone();
+                this.pB = pB.clone();
+                this.pC = new BABYLON.Vector3(this.pB.x, this.pA.y, this.pB.z); // 自动计算C点
+
+                this.meshes = [];
+                this.labels = [];
+                this.data = this.calculate(this.pA, this.pB);
+                this._render();
+            }
+
+            calculate(pA, pB) {
+                const pC = new BABYLON.Vector3(pB.x, pA.y, pB.z);
+                const dAB = BABYLON.Vector3.Distance(pA, pB);
+                const dBC = BABYLON.Vector3.Distance(pB, pC);
+                const dAC = BABYLON.Vector3.Distance(pA, pC);
+                const angle = dAB > 0.001 ? (Math.asin(Math.abs(dBC) / dAB) * 180 / Math.PI).toFixed(2) : "0.00";
+                return { ab: dAB.toFixed(3), bc: dBC.toFixed(3), ac: dAC.toFixed(3), ang: angle };
+            }
+
+            _render() {
+                this._line([this.pA, this.pB], BABYLON.Color3.White());
+                this._line([this.pB, this.pC], BABYLON.Color3.Red(), true);
+                this._line([this.pA, this.pC], new BABYLON.Color3(0.3, 0.6, 1));
+
+                this._arc();
+
+                // A、B、C 三点均生成球形标记
+                this._marker(this.pA, BABYLON.Color3.Green());
+                this._marker(this.pB, BABYLON.Color3.Red());
+                this._marker(this.pC, BABYLON.Color3.Yellow());
+
+                // A、B、C 字母标签：透明背景，颜色与标记一致，字体加大加粗并偏移避免遮挡球体
+                this._label(this.pA, "A", "#00ff88", "transparent", 14, "bold");
+                this._label(this.pB, "B", "#ff4444", "transparent", 14, "bold");
+                this._label(this.pC, "C", "#ffcc00", "transparent", 14, "bold");
+
+                // 测量数值标签（保留半透明背景，提升可读性）
+                this._label(BABYLON.Vector3.Center(this.pA, this.pB), `${this.data.ab}m`);
+                this._label(this.pB.add(new BABYLON.Vector3(0, 0.8, 0)), `H:${this.data.bc}m`, "#ff4444");
+            }
+
+            _line(pts, color, isDashed = false) {
+                const l = isDashed ? BABYLON.MeshBuilder.CreateDashedLines("l", {points: pts}, this.scene) : BABYLON.MeshBuilder.CreateLines("l", {points: pts}, this.scene);
+                l.color = color;
+                l.metadata = { ownerId: this.id };
+                this.meshes.push(l);
+            }
+
+            _arc() {
+                const dirAC = this.pC.subtract(this.pA).normalize();
+                const dirAB = this.pB.subtract(this.pA).normalize();
+                const pts = [];
+                for(let i = 0; i <= 10; i++) {
+                    const v = BABYLON.Vector3.Lerp(dirAC, dirAB, i / 10).normalize().scale(1.2);
+                    pts.push(this.pA.add(v));
+                }
+                const arc = BABYLON.MeshBuilder.CreateLines("arc", {points: pts}, this.scene);
+                arc.color = BABYLON.Color3.Yellow();
+                arc.metadata = { ownerId: this.id };
+                this.meshes.push(arc);
+            }
+
+            _marker(pos, color) {
+                const m = BABYLON.MeshBuilder.CreateSphere("m", {diameter: 0.25}, this.scene);
+                m.position = pos;
+                const mat = new BABYLON.StandardMaterial("mt", this.scene);
+                mat.emissiveColor = color;
+                m.material = mat;
+                m.metadata = { ownerId: this.id };
+                this.meshes.push(m);
+            }
+
+            _label(pos, text, color = "#ffffff", bg = "rgba(0,0,0,0.8)", fontSize = 11, fontWeight = "normal") {
+                const rect = new BABYLON.GUI.Rectangle();
+                rect.width = "70px"; rect.height = "28px";
+                rect.cornerRadius = 4; rect.thickness = 0; rect.background = bg;
+                const txt = new BABYLON.GUI.TextBlock();
+                txt.text = text;
+                txt.color = color;
+                txt.fontSize = fontSize;
+                txt.fontWeight = fontWeight;
+                // 无背景时添加文字阴影提升可读性
+                if (bg === "transparent") {
+                    txt.shadowColor = "rgba(0,0,0,0.9)";
+                    txt.shadowOffsetX = 1;
+                    txt.shadowOffsetY = 1;
+                    txt.shadowBlur = 3;
+                }
+                rect.addControl(txt);
+                this.gui.addControl(rect);
+                const anchor = BABYLON.MeshBuilder.CreateBox("a", {size: 0.01}, this.scene);
+                anchor.position = pos; anchor.isVisible = false;
+                rect.linkWithMesh(anchor);
+                this.meshes.push(anchor);
+                this.labels.push(rect);
+            }
+
+            dispose() {
+                this.meshes.forEach(m => m.dispose());
+                this.labels.forEach(l => l.dispose());
+            }
+        }
+
+        class MeasureManager {
+            constructor(scene) {
+                this.scene = scene;
+                this.gui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                this.entities = new Map();
+                this.isModeEnabled = false;
+                this.tempA = null;
+                this.tempSphereA = null;
+                this.counter = 0;
+                this._setup();
+            }
+
+            _setup() {
+                document.getElementById("measure-toggle").onchange = (e) => {
+                    this.isModeEnabled = e.target.checked;
+                    this._clearTemp();
+                    document.getElementById("live-id").innerText = this.isModeEnabled ? "准备测量..." : "测量关闭";
+                };
+
+                this.scene.onPointerObservable.add((info) => {
+                    const pick = info.pickInfo;
+
+                    if (info.type === BABYLON.PointerEventTypes.POINTERMOVE) {
+                        if (this.isModeEnabled && this.tempA && pick.hit) {
+                            const liveData = this._calculateTemp(this.tempA, pick.pickedPoint);
+                            this._updateMainPanel(liveData);
+                        }
+                    }
+
+                    if (info.type === BABYLON.PointerEventTypes.POINTERDOWN) {
+                        if (info.event.button === 0 && this.isModeEnabled && pick.hit) {
+                            if (!this.tempA) {
+                                this.tempA = pick.pickedPoint.clone();
+                                this._createTempMarker(this.tempA);
+                                document.getElementById("live-id").innerText = `正在测量: 组 ${this.counter + 1}`;
+                            } else {
+                                this._finalize(this.tempA, pick.pickedPoint);
+                                this._clearTemp();
+                            }
+                        }
+                        if (info.event.button === 2 && pick.hit) {
+                            const oid = pick.pickedMesh.metadata?.ownerId;
+                            if (oid) this._delete(oid);
+                        }
+                    }
+                });
+            }
+
+            _calculateTemp(pA, pB) {
+                const pC = new BABYLON.Vector3(pB.x, pA.y, pB.z);
+                const dAB = BABYLON.Vector3.Distance(pA, pB);
+                const dBC = BABYLON.Vector3.Distance(pB, pC);
+                const dAC = BABYLON.Vector3.Distance(pA, pC);
+                const ang = dAB > 0.001 ? (Math.asin(Math.abs(dBC) / dAB) * 180 / Math.PI).toFixed(2) : "0.00";
+                return { ab: dAB.toFixed(3), bc: dBC.toFixed(3), ac: dAC.toFixed(3), ang: ang };
+            }
+
+            _createTempMarker(pos) {
+                this.tempSphereA = BABYLON.MeshBuilder.CreateSphere("tempA", {diameter: 0.25}, this.scene);
+                this.tempSphereA.position = pos;
+                const m = new BABYLON.StandardMaterial("tm", this.scene);
+                m.emissiveColor = BABYLON.Color3.Green();
+                this.tempSphereA.material = m;
+            }
+
+            _finalize(pA, pB) {
+                const id = `${++this.counter}`;
+                const ent = new MeasurementEntity(id, pA, pB, this.scene, this.gui);
+                this.entities.set(id, ent);
+                this._updateHistoryUI();
+                document.getElementById("live-id").innerText = `已完成: 组 ${id}`;
+            }
+
+            _delete(id) {
+                if (this.entities.has(id)) {
+                    this.entities.get(id).dispose();
+                    this.entities.delete(id);
+                    this._updateHistoryUI();
+                    this._updateMainPanel(null);
+                    document.getElementById("live-id").innerText = `已删除: 组 ${id}`;
+                }
+            }
+
+            _clearTemp() {
+                this.tempA = null;
+                if (this.tempSphereA) { this.tempSphereA.dispose(); this.tempSphereA = null; }
+            }
+
+            _updateMainPanel(d) {
+                const fields = ["dist-ab", "dist-bc", "dist-ac", "angle-a"];
+                if (!d) {
+                    fields.forEach(f => document.getElementById(f).innerText = "--");
+                    return;
+                }
+                document.getElementById("dist-ab").innerText = d.ab + " m";
+                document.getElementById("dist-bc").innerText = d.bc + " m";
+                document.getElementById("dist-ac").innerText = d.ac + " m";
+                document.getElementById("angle-a").innerText = d.ang + " °";
+            }
+
+            _updateHistoryUI() {
+                const list = document.getElementById("card-container");
+                if (this.entities.size === 0) {
+                    list.innerHTML = `<div style="color:#444; text-align:center; font-size:12px;">暂无测量记录</div>`;
+                    return;
+                }
+                let html = "";
+                this.entities.forEach(ent => {
+                    const d = ent.data;
+                    html += `
+                        <div class="data-card" onclick="measureManager._selectMeasurement('${ent.id}')">
+                            <div class="card-header">测量编号: 组 ${ent.id} - 名称: 测量组 ${ent.id}</div>
+                            <div class="card-grid">
+                                <span>AB距: <b>${d.ab}m</b></span>
+                                <span>BC高: <b>${d.bc}m</b></span>
+                                <span>AC平: <b>${d.ac}m</b></span>
+                                <span>角度: <b>${d.ang}°</b></span>
+                            </div>
+                        </div>`;
+                });
+                list.innerHTML = html;
+            }
+
+            _selectMeasurement(id) {
+                const selectedEntity = this.entities.get(id);
+                this._updateMainPanel(selectedEntity.data);
+                document.getElementById("live-id").innerText = `选中: 组 ${id}`;
+            }
+        }
+
+        const scene = (() => {
+            const s = new BABYLON.Scene(engine);
+            s.clearColor = new BABYLON.Color4(0.08, 0.08, 0.1, 1);
+            const cam = new BABYLON.ArcRotateCamera("c", -1.5, 1.2, 25, new BABYLON.Vector3(0, 3, 0), s);
+            cam.attachControl(canvas, true);
+            new BABYLON.HemisphericLight("l", new BABYLON.Vector3(0, 1, 0), s);
+
+            const terrain = BABYLON.MeshBuilder.CreateGroundFromHeightMap("t", "https://playground.babylonjs.com/textures/heightMap.png", {
+                width: 40, height: 40, subdivisions: 60, minHeight: 0, maxHeight: 6
+            }, s);
+            const mat = new BABYLON.StandardMaterial("tm", s);
+            mat.diffuseColor = new BABYLON.Color3(0.2, 0.3, 0.4);
+            mat.wireframe = true; mat.alpha = 0.4;
+            terrain.material = mat;
+
+            return s;
+        })();
+
+        const measureManager = new MeasureManager(scene);
+        engine.runRenderLoop(() => scene.render());
+        window.addEventListener("resize", () => engine.resize());
+    </script>
+</body>
+</html>

@@ -1,0 +1,686 @@
+.marsBlackPanel {
+  min-width: 90px;
+  min-height: 35px;
+  position: absolute;
+  left: 16px;
+  bottom: 31px;
+  cursor: default;
+  border-radius: 4px;
+  opacity: 0.96;
+  border: 1px solid #14171c;
+  box-shadow: 0px 2px 21px 0px rgba(33, 34, 39, 0.55);
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: linear-gradient(0deg, #1e202a 0%, #0d1013 100%);
+}
+
+.marsBlackPanel::before {
+  content: "";
+  width: calc(100% + 22px);
+  height: 39px;
+  position: absolute;
+  bottom: -39px;
+  left: -22px;
+  background: url("/img/textures/popupLbl.png") 0px 0px no-repeat;
+  background-position: 0px 0px;
+}
+
+.marsBlackPanel-text {
+  width: 100%;
+  height: 100%;
+  min-height: 33px;
+  text-align: center;
+  padding: 10px 5px 0 5px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: #ffffff;
+  border: 1px solid #ffffff4f;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+
+
+
+
+.lablePanel {
+  min-width: 75px;
+  min-height: 12px;
+  position: absolute;
+  left: 20px;
+  bottom: 24px;
+  cursor: default;
+  border-radius: 4px;
+  opacity: 0.96;
+  border: 1px solid #688dcb;
+  box-shadow: 0px 2px 21px 0px rgba(33, 34, 39, 0.55);
+  border-radius: 4px;
+  box-sizing: border-box;
+  /* background: linear-gradient(0deg, #1e202a 0%, #0d1013 100%); */
+  background: rgba(0, 46, 83, 0.8);
+}
+.lablePanel::before{
+  content: "";
+  width: calc(100% + 22px);
+  height: 39px;
+  position: absolute;
+  bottom: -44px;
+  left: -19px;
+  background: url(img/textures/linezhi3.png) 0px 0px no-repeat;
+  background-position: 0px 0px;
+  // scale: 0.7;
+}
+
+.lablePanel-text {
+  width: 100%;
+  height: 100%;
+  min-height: 20px;
+  text-align: center;
+  padding: 3px;
+  margin: 0;
+  font-size: 11px;
+
+  font-family: initial;
+  color: #ffffff;
+  border: 1px solid #ffffff4f;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+  
+  .lablePanel-highlight {
+    border: 2px solid yellow;
+  }
+
+  // 巡检图片
+.imagePoup {
+  width: 100%;
+  height: 83%;
+   cursor: pointer;
+   padding: 5px;
+ }
+ 
+ .noImagePoup {
+  width: 100%;
+  height: 84%;
+   padding: 2px;
+   background: url("/img/props/noimage.png") no-repeat ;
+   background-size: 100% 100%;
+   // background: url("/public/img/props/zanwu.png") 285px 67px no-repeat;
+ }
+
+ .alertClass{
+  background: url("/img/props/1.png") no-repeat 100% 100%;
+ }
+
+ .marswayInfo{
+  position: absolute;
+  width: 398px;
+  height: 268px;
+  left: -9px;
+  bottom: -5px;
+  background: url("/img/marker/wether1.png") no-repeat 100% 100%;
+  font-size: 13px;
+  font-family: Source Han Sans CN;
+  color: #ffffff;
+  // padding-top: 2px;
+  padding: 1px;
+  .gs{
+    color: #46ffff;
+  }
+  .jh{
+    padding-top: 5px;
+  }
+
+}
+
+
+ // ----------------------------- mars3d -----------------
+ .pouploader {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    border: 3px solid;
+    border-color: rgba(148, 131, 131, 0.5) rgba(0, 0, 0, 0.5) transparent transparent;
+    -webkit-animation: rotation 1s linear infinite;
+    animation: rotation 1s linear infinite;
+    /*background: red;
+     */
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+  }
+  
+  .pouploader:before {
+    width: 32px;
+    height: 32px;
+    border-color: rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.5) transparent transparent;
+    -webkit-animation: rotation 1.5s linear infinite;
+    animation: rotation 1.5s linear infinite;
+  }
+  
+  .pouploader:after,
+  .pouploader:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    border: 3px solid;
+    border-color: transparent transparent rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.5);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    -webkit-animation: rotationBack 0.5s linear infinite;
+    animation: rotationBack 0.5s linear infinite;
+    transform-origin: center center;
+  }
+  
+  @keyframes rotation {
+    0% {
+      transform: rotate(0deg);
+    }
+  
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes rotationBack {
+    0% {
+      transform: rotate(0deg);
+    }
+  
+    100% {
+      transform: rotate(-360deg);
+    }
+  }
+  // ----------------------------- mars3d -----------------
+
+  .titlespan{
+    margin-left: 45px;
+    display: inline-block;
+    padding: 3px 0 0 0;
+    font-size: 16px;
+    font-family: Source Han Sans CN;
+  }
+  .content{
+    max-height: 380px;
+    overflow: hidden;
+  }
+  .infocenter {
+    .item {
+      font-size: 14px;
+      font-family: Source Han Sans CN;
+      font-weight: 500;
+      color: #FFFFFF;
+      display: flex;
+      justify-content: space-between;
+      padding: 0px 18px;
+      margin-top: 15px;
+      
+
+      .data-labelkey {
+        width: 77px;
+        height: 100%;
+        text-align: right;
+        overflow: hidden; //超出的文本隐藏
+        text-overflow: ellipsis; //溢出用省略号显示
+        white-space: nowrap; //溢出不换行
+      }
+
+      .data-labelvalue {
+        // height:100%;
+        margin-left: 6px;
+        // margin-right: 10px;
+        width: 105px;
+        color: #46ffff;
+        text-align: left;
+      }
+
+      .data-poilabelkey {
+        font-size: 16px;
+        width: 60px;
+        height: 100%;
+        color: #46ffff;
+        text-align: left;
+      }
+
+      .data-poilabelvalue {
+        // height:100%;
+        margin-left: 10px;
+        margin-right: 10px;
+        width: calc(100% - 60px);
+      }
+      .item_it{
+        display: flex;
+      }
+    }
+  }
+
+  .menubgbox {
+    position: absolute;
+    top: -4vh;
+    left: 52%;
+    
+  
+    
+  
+    .data-labelvaluebox {
+      display: flex;
+      align-items: center;
+  
+      #data-labelvalueimg {
+        cursor: pointer;
+        width: 21px;
+        height: 21px;
+        background-image: url('../../static/img/newHome/phone.png');
+        background-size: 100% 100%;
+        margin-left: 10px;
+      }
+    }
+    .polymerization-itembox:nth-child(2n-1) {
+      height: 25px;
+      line-height: 25px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: Source Han Sans CN;
+      font-weight: 400;
+      color: #ffffff;
+      margin-bottom: 2px;
+      display: flex;
+      background-color: rgba(18, 178, 250, 0.2);
+    }
+  
+    .polymerization-itembox:nth-child(2n) {
+      height: 25px;
+      line-height: 25px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: Source Han Sans CN;
+      font-weight: 400;
+      color: #C6E4FF;;
+      margin-bottom: 2px;
+      display: flex;
+      background-color: rgba(18, 178, 250, 0.1);
+    }
+  
+    .polymerization-labelkey {
+      font-size: 16px;
+      width: 25px;
+      height: 100%;
+      color: #46ffff;
+      text-align: left;
+      margin-left: 12px;
+    }
+  
+    .polymerization-labelvalue {
+      // height:100%;
+      font-size: 16px;
+      margin-left: 10px;
+      margin-right: 10px;
+      width: calc(100% - 25px);
+      overflow: hidden;
+      text-align: left;
+      white-space: nowrap;
+      /*文字超出宽度则显示ellipsis省略号*/
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+  
+  }
+  
+  .menubgbox::before {
+    content: "";
+    width: 397px;
+    // width: calc(100% + 9px);
+    height: 38px;
+    position: absolute;
+    // bottom: -41px;
+    left: -397px;
+    background: url("/img/marker/lineright.png") 0px 0px no-repeat;
+    background-size: 100% 100%;
+    background-position: 0px 0px;
+  
+    // content: "";
+    // width: calc(100% + 9px);
+    // height: 181px;
+    // position: absolute;
+    // bottom: -50px;
+    // left: -2px;
+    // background: url("/img/icon/lineright.png") 0px 0px no-repeat;
+  }
+  .menubbox {
+    position: absolute;
+    left: -398px;
+    top: -230px;
+    width: 351px;
+    height: 231px;
+    // background: url("/img/marker/wether.png");
+    background-image: url('/img/marker/wether.png');
+    background-size: 100% 100%;
+    font-size: 20px;
+    font-family: Source Han Sans CN;
+    font-weight: 500;
+    color: #FFFFFF;
+    // line-height: 30px;
+    // text-align: left;
+    // padding-left: 36px;
+    // padding-right: 100px;
+    /*1. 先强制一行内显示文本*/
+    white-space: nowrap;
+    // （ 默认 normal 自动换行）
+    /*2. 超出的部分隐藏*/
+    overflow: hidden;
+    /*3. 文字用省略号替代超出的部分*/
+    text-overflow: ellipsis;
+  
+
+    .close {
+      // cursor: pointer;
+      // width: 24px;
+      // height: 24px;
+      position: absolute;
+      top: 0px;
+      right: 16px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      background: url("/img/marker/close1.png") no-repeat 100% 100%;
+    }
+  
+  }
+
+
+  .detiallog {
+    width: 191px;
+    height: 266px;
+    background: url("/img/marker/proup1.png") no-repeat 100% 100%;
+  
+    // position: fixed;
+  
+    bottom: 38vh;
+    left: 43vw;
+    // position: relative;
+    // padding: 15px;
+    overflow: hidden;
+    margin-top: 8px;
+  
+    .content::-webkit-scrollbar {
+      /*滚动条整体样式*/
+  
+      width: 5px;
+      /*高宽分别对应横竖滚动条的尺寸*/
+  
+      height: 1px;
+    }
+  
+    .content::-webkit-scrollbar-thumb {
+      /*滚动条里面小方块*/
+  
+      border-radius: 10px;
+  
+      -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  
+      background: #24b9ff;
+    }
+  
+    .content::-webkit-scrollbar-track {
+      /*滚动条里面轨道*/
+  
+      -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  
+      border-radius: 10px;
+  
+      background: #5281bb;
+    }
+  
+    .content {
+      max-height: 255px;
+      overflow: auto;
+      padding: 3px;
+  
+      .time {
+        font-size: 16px;
+        font-family: Source Han Sans CN;
+        font-weight: 400;
+        color: #ffffff;
+        line-height: 30px;
+      }
+  
+      .center {
+        .item {
+          font-size: 14px;
+          font-family: Source Han Sans CN;
+          font-weight: 400;
+          color: #ffffff;
+          margin-bottom: 10px;
+          display: flex;
+  
+          .data-labelkey {
+            font-size: 16px;
+            width: 150px;
+            height: 100%;
+            color: #46ffff;
+            text-align: left;
+            overflow: hidden; //超出的文本隐藏
+            text-overflow: ellipsis; //溢出用省略号显示
+            white-space: nowrap; //溢出不换行
+          }
+  
+          .data-labelvalue {
+            // height:100%;
+            margin-left: 10px;
+            margin-right: 10px;
+            width: calc(100% - 150px);
+          }
+  
+          .data-poilabelkey {
+            font-size: 16px;
+            width: 60px;
+            height: 100%;
+            color: #46ffff;
+            text-align: left;
+          }
+  
+          .data-poilabelvalue {
+            // height:100%;
+            margin-left: 10px;
+            margin-right: 10px;
+            width: calc(100% - 60px);
+          }
+        }
+      }
+    }
+  
+    .polymerization-itembox {
+      cursor: pointer;
+      font-size: 14px;
+      font-family: Source Han Sans CN;
+      font-weight: 400;
+      color: #ffffff;
+      margin-bottom: 2px;
+      display: flex;
+      background: rgba(0,27,63,0.4);
+      margin: 6px 5px 0px 5px;
+      height: 28px;
+      line-height: 28px;
+    }
+    .spanclass{
+      font-size: 14px;
+      font-family: Source Han Sans CN;
+      font-weight: 400;
+      color: #C6E4FF;;
+
+    }
+  
+    
+  
+    .polymerization-labelkey {
+      font-size: 14px;
+      width: 25px;
+      height: 100%;
+      // color: #46ffff;
+      text-align: center;
+      margin-left: 12px;
+    }
+  
+    .polymerization-labelvalue {
+      // height:100%;
+      font-size: 14px;
+      margin-left: 10px;
+      margin-right: 10px;
+      width: calc(100% - 25px);
+      overflow: hidden;
+      white-space: nowrap;
+      /*文字超出宽度则显示ellipsis省略号*/
+      text-overflow: ellipsis;
+      width: 100%;
+      color: #1AF2FF;
+    }
+  
+    .title {
+      display: flex;
+      align-items: center;
+  
+      justify-content: space-around;
+      color: #fff;
+      font-weight: bold;
+      margin: 10px;
+      margin-bottom: 1px;
+      height: 38px;
+      background: rgba(48, 70, 92, 0.47);
+  
+      div {
+        text-align: center;
+        font-size: 14px;
+        font-family: Source Han Sans CN;
+        font-weight: bold;
+        color: #41a1fa;
+      }
+    }
+  
+    .dialog_top {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      // justify-content: space-between;
+      // border-bottom: 1px dashed #41a1fa;
+      margin-bottom: 10px;
+  
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        position: relative;
+        bottom: -3px;
+        left: 43px;
+      }
+  
+      .dialog_title {
+        font-family: Source Han Sans CN;
+        font-weight: 500;
+        font-size: 16px;
+        color: #ffffff;
+      }
+  
+      .buttonbill {
+        width: 73px;
+        height: 27px;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid #2356ac;
+        font-size: 14px;
+        font-family: Source Han Sans CN;
+        font-weight: 400;
+        text-align: center;
+        color: #ffffff;
+        cursor: pointer;
+        line-height: 27px;
+        margin-right: 30px;
+      }
+    }
+  
+    .close {
+      // cursor: pointer;
+      // width: 24px;
+      // height: 24px;
+      position: absolute;
+      top: 8px;
+    right: 16px;
+      // padding: 4px 4px 0 0;
+      // text-align: center;
+      width: 24px;
+      height: 24px;
+      // font: 16px/14px Tahoma, Verdana, sans-serif;
+      // text-decoration: none;
+      // font-weight: bold;
+      // background: #2d8cf0;
+      // z-index: 20170825;
+      cursor: pointer;
+      background: url("/img/marker/close1.png") no-repeat 100% 100%;
+    }
+  
+    .data-labelvaluebox {
+      display: flex;
+      align-items: center;
+  
+      // #data-labelvalueimg {
+      //   cursor: pointer;
+      //   width: 21px;
+      //   height: 21px;
+      //   background-image: url('../../static/img/newHome/phone.png');
+      //   background-size: 100% 100%;
+      //   margin-left: 10px;
+      // }
+    }
+  }
+
+
+  .custom-class {
+    .ant-message-notice-content {
+      position: relative;
+      top: 6vh;
+      background: rgba(1, 38, 76, 0.6);
+      color: #fff;
+    }
+  }
+
+
+  .mars3d-smallTooltip {
+    font-size: 12px;
+    font-family: PingFang SC;
+    // font-weight: 400;
+    height: 22px;
+  
+    // width: 100%;
+    .mars3d-smallTooltip-rightArrow {
+      // width: 100%;
+      left: -94%;
+      // border-right: 5px solid rgba($color: #ffffff, $alpha: 0.75);
+      border-right: 5px solid transparent;
+    }
+  
+    .mars3d-smallTooltip-arrow {
+      width: 100%;
+    }
+  
+    .mars3d-smallTooltip-inner {
+      // background-color: #d3d3d2;
+      background: rgba($color: #ffffff, $alpha: 0.75);
+      color: #1d1c1c;
+      border: 1px solid #395bd8;
+      border-radius: 5px;
+      padding-left: 5px;
+      padding-right: 5px;
+      width: fit-content;
+    }
+  
+  }

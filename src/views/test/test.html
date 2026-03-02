@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Babylon.js Measurement Tool</title>
+    <style>
+        html, body { overflow: hidden; width: 100%; height: 100%; margin: 0; padding: 0; }
+        #renderCanvas { width: 100%; height: 100%; touch-action: none; }
+        #ui-panel {
+            position: absolute; top: 20px; left: 20px; width: 300px;
+            background: rgba(30, 30, 35, 0.9); color: white;
+            padding: 15px; border-radius: 8px; font-family: 'Segoe UI', sans-serif;
+            pointer-events: none; /* Let clicks pass through to canvas if not on interactive elements */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+        }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .label { color: #aaa; }
+        .value { font-weight: bold; color: #4db8ff; }
+        .title { font-size: 16px; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 8px; margin-bottom: 10px; color: #ffcc00; }
+        .instruction { font-size: 12px; color: #888; font-style: italic; margin-top: 10px;}
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <div class="title">3D 空间三角测量</div>
+        <div id="info-content">
+            <div class="info-row"><span class="label">状态:</span> <span class="value" id="status-text">等待拾取点 A...</span></div>
+            <div class="info-row"><span class="label">距离 (AB):</span> <span class="value" id="dist-ab">--</span></div>
+            <div class="info-row"><span class="label">高差 (BC):</span> <span class="value" id="dist-bc">--</span></div>
+            <div class="info-row"><span class="label">水平 (AC):</span> <span class="value" id="dist-ac">--</span></div>
+            <div class="info-row"><span class="label">角度 (∠A):</span> <span class="value" id="angle-a">--</span></div>
+        </div>
+        <div class="instruction">
+            1. 点击场景拾取起点 A (定义平面)<br>
+            2. 点击场景拾取终点 B<br>
+            3. 右键点击重置
+        </div>
+    </div>
+
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+
+        // UI DOM Elements
+        const uiStatus = document.getElementById("status-text");
+        const uiDistAB = document.getElementById("dist-ab");
+        const uiDistBC = document.getElementById("dist-bc");
+        const uiDistAC = document.getElementById("dist-ac");
+        const uiAngleA = document.getElementById("angle-a");
+
+        // --- 核心测量逻辑类 (便于扩展) ---
+        class MeasureTool {
+            constructor(scene, advancedTexture) {
+                this.scene = scene;
+                this.gui = advancedTexture;
+                this.pointA = null;
+                this.pointB = null;
+                this.pointC = null;
+                
+                // 存储可视化的Mesh
+                this.markers = [];
+                this.lines = [];
+                this.labels = [];
+            }
+
+            // 对外接口：自动计算模式 (为未来预留)
+            // 你可以遍历模型顶点，找到最低点传给B，特定标识点传给A
+            autoMeasure(vectorA, vectorB) {
+                this.reset();
+                this.setPointA(vectorA);
+                this.setPointB(vectorB);
+            }
+
+            setPointA(point) {
+                this.pointA = point;
+                this.createMarker(point, BABYLON.Color3.Green());
+                uiStatus.innerText = "已选点 A，请选择点 B...";
+            }
+
+            setPointB(point) {
+                this.pointB = point;
+                this.createMarker(point, BABYLON.Color3.Red());
+                
+                // 核心计算逻辑：计算 C 点
+                // 假设平面 P 过点 A 且法线为 (0,1,0) -> 即水平面
+                // C 的 x, z 与 B 相同，y 与 A 相同
+                this.pointC = new BABYLON.Vector3(point.x, this.pointA.y, point.z);
+                
+                // 可视化 C 点（稍微小一点，做辅助点）
+                this.createMarker(this.pointC, BABYLON.Color3.Yellow(), 0.1);
+
+                this.calculateAndDraw();
+                uiStatus.innerText = "测量完成。右键重置。";
+            }
+
+            calculateAndDraw() {
+                if (!this.pointA || !this.pointB || !this.pointC) return;
+
+                // 1. 绘制线条
+                // 线 AB (斜边)
+                this.createLine(this.pointA, this.pointB, BABYLON.Color3.White(), false);
+                // 线 BC (垂线 - 虚线效果可以用纹理模拟，这里用半透明实线代替)
+                this.createLine(this.pointB, this.pointC, BABYLON.Color3.Red(), true); 
+                // 线 AC (底边)
+                this.createLine(this.pointA, this.pointC, BABYLON.Color3.Blue(), false);
+
+                // 2. 计算距离
+                const lenAB = BABYLON.Vector3.Distance(this.pointA, this.pointB);
+                const lenBC = BABYLON.Vector3.Distance(this.pointB, this.pointC); // 高差
+                const lenAC = BABYLON.Vector3.Distance(this.pointA, this.pointC); // 水平距离
+
+                // 3. 计算角度 (利用反正弦或反余弦)
+                // sin(A) = 对边 / 斜边 = BC / AB
+                let angleRad = 0;
+                if (lenAB > 0.0001) {
+                    angleRad = Math.asin(lenBC / lenAB);
+                }
+                const angleDeg = (angleRad * 180 / Math.PI).toFixed(2);
+
+                // 4. 更新 DOM UI
+                uiDistAB.innerText = lenAB.toFixed(3) + " m";
+                uiDistBC.innerText = lenBC.toFixed(3) + " m";
+                uiDistAC.innerText = lenAC.toFixed(3) + " m";
+                uiAngleA.innerText = angleDeg + "°";
+
+                // 5. 场景内 3D GUI 标签
+                this.createLabel(this.getMidPoint(this.pointA, this.pointB), `Len: ${lenAB.toFixed(2)}`);
+                this.createLabel(this.getMidPoint(this.pointB, this.pointC), `H: ${lenBC.toFixed(2)}`);
+                
+                // 6. 绘制角度弧线 (简单的视觉辅助)
+                this.createAngleArc(this.pointA, this.pointC, this.pointB);
+            }
+
+            reset() {
+                this.pointA = null;
+                this.pointB = null;
+                this.pointC = null;
+
+                // 清理资源
+                this.markers.forEach(m => m.dispose());
+                this.lines.forEach(l => l.dispose());
+                this.labels.forEach(l => l.dispose());
+                this.markers = [];
+                this.lines = [];
+                this.labels = [];
+
+                uiStatus.innerText = "等待拾取点 A...";
+                uiDistAB.innerText = "--";
+                uiDistBC.innerText = "--";
+                uiDistAC.innerText = "--";
+                uiAngleA.innerText = "--";
+            }
+
+            // --- 辅助绘图方法 ---
+
+            getMidPoint(p1, p2) {
+                return BABYLON.Vector3.Center(p1, p2);
+            }
+
+            createMarker(position, color, size = 0.2) {
+                const sphere = BABYLON.MeshBuilder.CreateSphere("marker", {diameter: size}, this.scene);
+                sphere.position = position;
+                const mat = new BABYLON.StandardMaterial("markerMat", this.scene);
+                mat.emissiveColor = color;
+                sphere.material = mat;
+                this.markers.push(sphere);
+            }
+
+            createLine(p1, p2, color, isDashed) {
+                let line;
+                if (isDashed) {
+                    line = BABYLON.MeshBuilder.CreateDashedLines("line", {
+                        points: [p1, p2],
+                        dashSize: 3, gapSize: 1,
+                    }, this.scene);
+                } else {
+                    line = BABYLON.MeshBuilder.CreateLines("line", {points: [p1, p2]}, this.scene);
+                }
+                line.color = color;
+                this.lines.push(line);
+            }
+
+            createLabel(position, text) {
+                const label = new BABYLON.GUI.Rectangle("label");
+                label.background = "black";
+                label.height = "30px";
+                label.alpha = 0.7;
+                label.width = "100px";
+                label.cornerRadius = 5;
+                label.thickness = 1;
+                label.linkOffsetY = -30;
+
+                const textBlock = new BABYLON.GUI.TextBlock();
+                textBlock.text = text;
+                textBlock.color = "white";
+                label.add(textBlock);
+
+                this.gui.addControl(label);
+                label.linkWithMesh(this.scene.getMeshByName("marker")); // Link to a dummy, logic requires linking to mesh or tracking position
+                // Babylon GUI linking usually needs a mesh. 
+                // 为了简单，我们创建一个不可见的锚点mesh
+                const anchor = BABYLON.MeshBuilder.CreateBox("anchor", {size: 0.05}, this.scene);
+                anchor.isVisible = false;
+                anchor.position = position;
+                label.linkWithMesh(anchor);
+                
+                this.labels.push(label); // Store GUI control
+                this.markers.push(anchor); // Store anchor to dispose later
+            }
+            
+            createAngleArc(origin, pBase, pTop) {
+                 // 简单的角度可视化：画几条线段模拟弧
+                 // 这是一个简化版，完美的弧线需要根据向量计算切面
+                 // 这里简单地在 AC 和 AB 之间画个连接
+                 const vec1 = pBase.subtract(origin).normalize().scale(1.0); // 距离原点1米
+                 const vec2 = pTop.subtract(origin).normalize().scale(1.0);
+                 
+                 const arcStart = origin.add(vec1);
+                 const arcEnd = origin.add(vec2);
+                 
+                 const arc = BABYLON.MeshBuilder.CreateDashedLines("arc", {
+                     points: [arcStart, arcEnd],
+                     dashSize: 1, gapSize: 1
+                 }, this.scene);
+                 arc.color = BABYLON.Color3.Yellow();
+                 this.lines.push(arc);
+            }
+        }
+
+        // --- 场景初始化 ---
+        const createScene = function () {
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.15, 1);
+
+            // 相机
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0), scene);
+            camera.attachControl(canvas, true);
+
+            // 灯光
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+            // 示例模型：创建一个复杂地形或物体供点击
+            const ground = BABYLON.MeshBuilder.CreateGroundFromHeightMap("ground", "https://playground.babylonjs.com/textures/heightMap.png", {
+                width: 20, height: 20, subdivisions: 50, minHeight: 0, maxHeight: 4
+            }, scene);
+            ground.material = new BABYLON.StandardMaterial("gMat", scene);
+            ground.material.wireframe = true;
+            ground.material.alpha = 0.5;
+            
+            // 添加几个具体的盒子，模拟建筑物
+            const box = BABYLON.MeshBuilder.CreateBox("building", {height: 5, width: 2, depth: 2}, scene);
+            box.position = new BABYLON.Vector3(3, 2.5, 3);
+
+            // GUI 初始化
+            const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+            // 实例化测量工具
+            const measureTool = new MeasureTool(scene, advancedTexture);
+
+            // --- 交互事件监听 ---
+            scene.onPointerObservable.add((pointerInfo) => {
+                switch (pointerInfo.type) {
+                    case BABYLON.PointerEventTypes.POINTERDOWN:
+                        // 鼠标左键 (0) 拾取
+                        if (pointerInfo.event.button === 0) {
+                            if (pointerInfo.pickInfo.hit) {
+                                const pickedPoint = pointerInfo.pickInfo.pickedPoint;
+                                
+                                if (!measureTool.pointA) {
+                                    measureTool.setPointA(pickedPoint);
+                                } else if (!measureTool.pointB) {
+                                    measureTool.setPointB(pickedPoint);
+                                }
+                            }
+                        }
+                        // 鼠标右键 (2) 重置
+                        if (pointerInfo.event.button === 2) {
+                            measureTool.reset();
+                        }
+                        break;
+                }
+            });
+
+            return scene;
+        };
+
+        const scene = createScene();
+
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
