@@ -190,9 +190,9 @@ import { ElMessage } from 'element-plus'
 import { Loading, Compass } from '@element-plus/icons-vue'
 import type { ModelInfo } from '@/services/babylon/ModelLoadService'
 import type { MeasurementResult } from '@/services/babylon/MeasurementService'
-import TriangleMeasurementPanel from './TriangleMeasurementPanel.vue'
-import { TriangleMeasurementService } from '@/services/babylon/TriangleMeasurementService'
-import type { TriangleData, AutoMeasureConfig } from '@/services/babylon/TriangleMeasurementService'
+// import TriangleMeasurementPanel from './TriangleMeasurementPanel.vue'
+// import { TriangleMeasurementService } from '@/services/babylon/TriangleMeasurementService'
+// import type { TriangleData, AutoMeasureConfig } from '@/services/babylon/TriangleMeasurementService'
 import * as BABYLON from 'babylonjs'
 
 // Canvas 引用
@@ -433,27 +433,27 @@ const handleStartTriangleMeasurement = () => {
   const babylonService = (window as any).__babylonService__
   const scene = babylonService?.getScene()
   
-  if (scscene = babylonServicenterObservable.add((pointerInfo: BABYLON.PointerInfo) => {
-      if (!isTriangleMeasuring.value) return
+//   if (scscene = babylonServicenterObservable.add((pointerInfo: BABYLON.PointerInfo) => {
+//       if (!isTriangleMeasuring.value) return
 
-      if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
-        const pickResult = pointerInfo.pickInfo
-        if (pickResult && pickResult.hit && pickResult.pickedPoint) {
-          currentTrianglePoints.value++
+//       if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
+//         const pickResult = pointerInfo.pickInfo
+//         if (pickResult && pickResult.hit && pickResult.pickedPoint) {
+//           currentTrianglePoints.value++
 
-          if (currentTrianglePoints.value === 3) {
-            setTimeout(() => {
-              updateTrianglesList()
-              currentTrianglePoints.value = 0
-            }, 100)
-          }
-        }
-      }
-    })
-  }
+//           if (currentTrianglePoints.value === 3) {
+//             setTimeout(() => {
+//               updateTrianglesList()
+//               currentTrianglePoints.value = 0
+//             }, 100)
+//           }
+//         }
+//       }
+//     })
+//   }
 
-  ElMessage.info('三角形测量已启动，请在场景中选择3个点')
-}
+//   ElMessage.info('三角形测量已启动，请在场景中选择3个点')
+// }
 
 /**
  * 停止三角形测量
@@ -531,9 +531,6 @@ const handleAutoMeasure = async () => {
 
   const babylonService = (window as any).__babylonService__
   const scene = babylonService?.getScene()
-  if (!sscene = babylonService
-    return
-  }
 
   try {
     // 获取场景中的所有网格

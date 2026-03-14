@@ -31,8 +31,8 @@ export interface WindmillClickEvent {
   position: [number, number, number];
 }
 
-// 默认风机模型地址
-const DEFAULT_MODEL_URL = "https://data.mars3d.cn/gltf/mars/fengche.gltf";
+// 默认风机模型地址   https://data.mars3d.cn/gltf/mars/fengche.gltf
+const DEFAULT_MODEL_URL = "http://47.104.109.74:10555/linejson/feng/fengji.glb";
 
 export class WindmillLayerManager {
   private mapInstance: any;
@@ -145,10 +145,10 @@ export class WindmillLayerManager {
       position: [point.lon, point.lat, point.alt || 0],
       style: {
         url: this.modelUrl,
-        scale: 110, // 模型缩放
+        scale: 1, // 模型缩放
         // minimumPixelSize: 50, // 最小像素大小
         // maximumScale: 20000, // 最大缩放
-        heading:309,
+        heading:-309,
         pitch: 0,
         roll: 0,
         scaleByDistance: new Cesium.NearFarScalar(800, 1.2, 12000, 0.4),
@@ -212,7 +212,7 @@ export class WindmillLayerManager {
         console.log("[WindmillLayerManager] 鼠标移入", windmill.id);
 
         graphic.setStyle({
-          scale: 100,
+          scale: 1,
           silhouette: true,
           silhouetteColor: "#00ffff",
           silhouetteSize: 3,
@@ -238,7 +238,7 @@ export class WindmillLayerManager {
         console.log("[WindmillLayerManager] 鼠标移出", windmill.id);
 
         graphic.setStyle({
-          scale: 100,
+          scale: 1,
           silhouette: false,
           label: {
             text: "",
